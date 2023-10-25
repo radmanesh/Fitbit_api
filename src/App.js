@@ -92,13 +92,14 @@ function App() {
 		e.preventDefault();
 		localStorage.clear();
 		setLoginShown(true);
-		window.location.href = 'https://tdnicola.github.io/Fitbit_api/';
-		// window.location.href = 'http://localhost:3000';
+		//window.location.href = 'https://tdnicola.github.io/Fitbit_api/';
+		window.location.href = 'http://localhost:3000';
 	};
 
 	useEffect(() => {
 		const accessToken = localStorage.getItem('access_token');
 		const lastSavedTime = localStorage.getItem('last_saved_time');
+		let code_verifier = localStorage.getItem("code_verifier");
 
 		if (
 			!accessToken &&
@@ -111,14 +112,14 @@ function App() {
 			//Access token not valid
 			let refreshToken = localStorage.getItem('refresh_token');
 
-			if (!refreshToken) {
+			if (!refreshToken || !code_verifier) {
 				//missing refresh token, clearing localstorage and start accesstoken route
 				localStorage.clear();
-				alert('It looks like something is missing. Please try again.');
+				alert(`It looks like something is missing. Please try again. ${code_verifier} and ${refreshToken} `);
 			}
 
 			//renewing access token
-			getOrRenewAccessToken('renew', refreshToken);
+			getOrRenewAccessToken('renew', refreshToken, code_verifier);
 			setLoginShown(false);
 		} else if (accessToken && Date.now() - lastSavedTime < 28800000) {
 			//Usable Access token
@@ -131,13 +132,14 @@ function App() {
 				const searchParams = new URLSearchParams(window.location.search);
 				const urlCode = searchParams.get('code');
 
-				if (!urlCode) {
+				if (!urlCode || !code_verifier || code_verifier==='' || urlCode==='') {
+					console.log('urlCode: %s , verifier: %s',urlCode,code_verifier);
 					alert('Something went wrong please try again.');
 					return;
 				}
 
 				//getting access code and userData
-				const getAccessCode = getOrRenewAccessToken('get', urlCode);
+				const getAccessCode = getOrRenewAccessToken('get', urlCode,code_verifier);
 				getAccessCode.then((code) => {
 					getUserData(code);
 					setLoginShown(false);
@@ -153,8 +155,8 @@ function App() {
 		const getProfileData = `https://api.fitbit.com/1/user/-/profile.json`;
 
 		const getLifeTimeData = `https://api.fitbit.com/1/user/-/activities.json`;
-		const getActivitiesList = `https://api.fitbit.com/1/user/-/activities/list.json`;
-		const getRecentActivites = `https://api.fitbit.com/1/user/-/activities/recent.json`;
+		// const getActivitiesList = `https://api.fitbit.com/1/user/-/activities/list.json`;
+		// const getRecentActivites = `https://api.fitbit.com/1/user/-/activities/recent.json`;
 		//daily summary includes goals
 		const getTodaySummary = `https://api.fitbit.com/1/user/-/activities/date/today.json`;
 		//FRIENDS
