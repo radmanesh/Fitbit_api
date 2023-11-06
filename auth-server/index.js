@@ -142,6 +142,7 @@ app.get("/refreshToken", async (req, res) => {
 
 });
 
-app.listen(2400, () => {
-	console.log("Server started at port 2400");
+const port = parseInt(process.env.PORT) || 8080;
+app.listen(port, () => {
+	console.log("Server started at port ${port}");
 });

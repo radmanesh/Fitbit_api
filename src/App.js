@@ -8,6 +8,7 @@ import SignIn from './components/sign-in/SignIn';
 import { getOrRenewAccessToken } from './components/api/api';
 //Data for guest
 import { mockProfileData } from './mockData/mockData';
+import {app, auth} from './firebase';
 
 function App() {
 	//different views
