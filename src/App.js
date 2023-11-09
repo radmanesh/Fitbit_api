@@ -1,110 +1,39 @@
+import "./App.css";
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
-import './App.css';
-//Components
-import SideBar from './components/sidebar/SideBar';
-import SignIn from './components/sign-in/SignIn';
-import { getOrRenewAccessToken } from './components/api/api';
-//Data for guest
 import { mockProfileData } from './mockData/mockData';
-import {app, auth} from './firebase';
+import { getOrRenewAccessToken } from './components/api/api';
+import SignIn from './components/sign-in/SignIn';
+import Dashboard from './components/dashboard/Dashboard'
 
 function App() {
-	//different views
-	const [loginShown, setLoginShown] = useState(true);
-	const [mainDashInfo, setMainDashInfo] = useState(true);
-	const [aboutMeButton, setAboutMeButton] = useState(false);
-	const [friendsButton, setfriendsButton] = useState(false);
-	const [badgesButton, setBadgesButton] = useState(false);
-	const [lifeTimeButton, setLifeTimeButton] = useState(false);
-
+  const [loginShown, setLoginShown] = useState(true);
 	//Data States
 	const [profileData, setProfileData] = useState('');
-	const [weeklyStepsData, setWeeklyStepsData] = useState('');
-	const [lifeTimeData, setLifeTimeData] = useState('');
-	const [dailyActivities, setDailyActivies] = useState('');
-	// const [recentActivities, setRecentActivites] = useState('');
-	const [friendsData, setFriendsData] = useState('');
-	const [activityGoals, setActivityGoals] = useState('');
-
-	//empty array for data to be changed and pushed
-	let updatedObjValuesofSteps = [];
-
-	const mainDashHandler = (e) => {
-		e.preventDefault();
-		setMainDashInfo(true);
-		setAboutMeButton(false);
-		setLifeTimeButton(false);
-		setfriendsButton(false);
-		setBadgesButton(false);
-	};
-
-	const aboutMeButtonHandler = (e) => {
-		e.preventDefault();
-		setMainDashInfo(false);
-		setBadgesButton(false);
-		setfriendsButton(false);
-		setLifeTimeButton(false);
-		setAboutMeButton(true);
-	};
-
-	const friendsButtonHandler = (e) => {
-		e.preventDefault();
-		setMainDashInfo(false);
-		setAboutMeButton(false);
-		setBadgesButton(false);
-		setLifeTimeButton(false);
-		setfriendsButton(true);
-	};
-
-	const lifeTimeButtonHandler = (e) => {
-		e.preventDefault(e);
-		setfriendsButton(false);
-		setMainDashInfo(false);
-		setAboutMeButton(false);
-		setBadgesButton(false);
-		setLifeTimeButton(true);
-	};
-
-	const badgesButtonHandler = (e) => {
-		e.preventDefault();
-		setMainDashInfo(false);
-		setAboutMeButton(false);
-		setfriendsButton(false);
-		setLifeTimeButton(false);
-		setBadgesButton(true);
-	};
-
-	const loginGuestHandler = (e) => {
-		e.preventDefault();
-		setLoginShown(false);
-		setProfileData(mockProfileData.user);
-		setLifeTimeData(mockProfileData.lifetime);
-		setWeeklyStepsData({
-			'activities-steps': mockProfileData['activities-steps'],
-		});
-		setDailyActivies(mockProfileData.summary);
-		setActivityGoals(mockProfileData.goals);
-		setFriendsData(mockProfileData.friends);
-	};
+  const [heartRateData, setHeartRateData] = useState('');
+  const [intradayHeartRateData, setIntradayHeartRateData] = useState('');
 
 	const logOutButtonHandler = (e) => {
 		e.preventDefault();
 		localStorage.clear();
 		setLoginShown(true);
-		//window.location.href = 'https://tdnicola.github.io/Fitbit_api/';
-		window.location.href = 'http://localhost:3000';
+		// window.location.href = 'https://jamasp.web.app/';
+    window.location.href = 'http://localhost:3000/';
+	};
+  const loginGuestHandler = (e) => {
+		e.preventDefault();
+		setLoginShown(false);
+		setProfileData(mockProfileData.user);
 	};
 
-	useEffect(() => {
+  useEffect(() => {
 		const accessToken = localStorage.getItem('access_token');
 		const lastSavedTime = localStorage.getItem('last_saved_time');
 		let code_verifier = localStorage.getItem("code_verifier");
 
 		if (
 			!accessToken &&
-			window.location.href === 'https://tdnicola.github.io/Fitbit_api/'
+			window.location.href === 'https://jamasp.web.app/'
 		) {
 			//local testing
 			// if (!accessToken && window.location.href === 'http://localhost:3000/') {
@@ -154,41 +83,36 @@ function App() {
 			headers: { Authorization: `Bearer ${accessToken}` },
 		};
 		const getProfileData = `https://api.fitbit.com/1/user/-/profile.json`;
+    const getHeartRateData = `https://api.fitbit.com/1/user/-/activities/heart/date/today/1d.json`;
+    //const getIntradayHeartrateData = `https://api.fitbit.com/1/user/BPBM4V/activities/heart/date/today/1d/1min.json`;
+    //const getIntradayHeartrateData = `https://api.fitbit.com/1/user/BPBM4V/activities/active-zone-minutes/date/today/1d/1min.json`;
+    const getIntradayHeartrateData = `https://api.fitbit.com/1/user/-/activities/heart/date/2023-11-06/today/1min.json`;
 
-		const getLifeTimeData = `https://api.fitbit.com/1/user/-/activities.json`;
+		//const getLifeTimeData = `https://api.fitbit.com/1/user/-/activities.json`;
 		// const getActivitiesList = `https://api.fitbit.com/1/user/-/activities/list.json`;
 		// const getRecentActivites = `https://api.fitbit.com/1/user/-/activities/recent.json`;
 		//daily summary includes goals
-		const getTodaySummary = `https://api.fitbit.com/1/user/-/activities/date/today.json`;
+		//const getTodaySummary = `https://api.fitbit.com/1/user/-/activities/date/today.json`;
 		//FRIENDS
-		const getFriendInfo = `https://api.fitbit.com/1.1/user/-/friends.json`;
-
+		//const getFriendInfo = `https://api.fitbit.com/1.1/user/-/friends.json`;
 		// weekly stats for distance/steps
-		const get7DaySteps = `https://api.fitbit.com/1/user/-/activities/steps/date/today/7d.json`;
+		//const get7DaySteps = `https://api.fitbit.com/1/user/-/activities/steps/date/today/7d.json`;
 		const requestOne = axios.get(getProfileData, config);
-		const requestTwo = axios.get(getLifeTimeData, config);
-		const requestThree = axios.get(getTodaySummary, config);
-		const requestFour = axios.get(get7DaySteps, config);
-		const requestFive = axios.get(getFriendInfo, config);
+	  const requestTwo = axios.get(getHeartRateData, config);
+		const requestThree = axios.get(getIntradayHeartrateData, config);
+		// const requestFour = axios.get(get7DaySteps, config);
+		// const requestFive = axios.get(getFriendInfo, config);
 
 		axios
-			.all([requestOne, requestTwo, requestThree, requestFour, requestFive])
+			.all([requestOne,requestTwo,requestThree])
 			.then(
 				axios.spread((...responses) => {
 					const responseOne = responses[0];
-					const responseTwo = responses[1];
-					const responseThree = responses[2];
-					const responseFour = responses[3];
-					const responseFive = responses[4];
-
+          const responseTwo = responses[1];
+          const responseThree = responses[2];
 					setProfileData(responseOne.data.user);
-					setLifeTimeData(responseTwo.data.lifetime);
-					setDailyActivies(responseThree.data.summary);
-					console.log(responseThree.data);
-					setActivityGoals(responseThree.data.goals);
-					setWeeklyStepsData(responseFour.data);
-					console.log(responseFive.data.data);
-					setFriendsData(responseFive.data.data);
+          setHeartRateData(responseTwo.data);
+          setIntradayHeartRateData(responseThree.data);
 				})
 			)
 			.catch((errors) => {
@@ -196,33 +120,41 @@ function App() {
 			});
 	};
 
-	return (
-		<div className='App'>
-			{loginShown && <SignIn loginGuestHandler={loginGuestHandler} />}
-			{!loginShown && (
-				<SideBar
-					dailyActivities={dailyActivities}
-					profileData={profileData}
-					lifeTimeData={lifeTimeData}
-					mainDashHandler={mainDashHandler}
-					mainDashInfo={mainDashInfo}
-					aboutMeButtonHandler={aboutMeButtonHandler}
-					aboutMeButton={aboutMeButton}
-					weeklyStepsData={weeklyStepsData}
-					logOutButtonHandler={logOutButtonHandler}
-					activityGoals={activityGoals}
-					updatedObjValuesofSteps={updatedObjValuesofSteps}
-					badgesButtonHandler={badgesButtonHandler}
-					friendsButtonHandler={friendsButtonHandler}
-					badgesButton={badgesButton}
-					friendsButton={friendsButton}
-					friendsData={friendsData}
-					lifeTimeButtonHandler={lifeTimeButtonHandler}
-					lifeTimeButton={lifeTimeButton}
-				/>
-			)}
-		</div>
-	);
-}
+  const downloadHandler = (data, fileName) => {
+    // create file in browser
+    if (fileName === ''){
+      fileName = 'output.json';
+    }
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const href = URL.createObjectURL(blob);
+  
+    // create "a" HTLM element with href to file
+    const link = document.createElement("a");
+    link.href = href;
+    link.download = fileName + ".json";
+    document.body.appendChild(link);
+    link.click();
+  
+    // clean up "a" element & remove ObjectURL
+    document.body.removeChild(link);
+    URL.revokeObjectURL(href);
+    return;
+  };
 
+  return (
+    <div className="app">
+      {loginShown && <SignIn loginGuestHandler={loginGuestHandler} />}
+      {!loginShown && 
+        <Dashboard 
+          profileData={profileData}
+          heartRateData={heartRateData}
+          intradayHeartRateData={intradayHeartRateData}
+          logOutButtonHandler={logOutButtonHandler}
+          downloadHandler={downloadHandler}
+        />
+      } 
+    </div>
+  );
+}
 export default App;
